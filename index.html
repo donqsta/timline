@@ -1,0 +1,648 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Dự Án Khoeplus.today & Green Nutri</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
+        }
+        
+        .btn-export {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            padding: 10px 30px;
+            background: #f1f3f5;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            background: #dfe6e9;
+            color: #2d3436;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .tab:hover {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            font-size: 13px;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            vertical-align: top;
+        }
+        
+        tr:hover td {
+            background: #f8f9fa;
+        }
+        
+        .status-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .status-chua-bat-dau { 
+            background: #ffeaa7; 
+            color: #2d3436;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .status-dang-thuc-hien { 
+            background: #74b9ff; 
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .status-hoan-thanh { 
+            background: #00b894; 
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .status-tam-dung { 
+            background: #fdcb6e;
+            color: #2d3436;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .status-huy-bo { 
+            background: #e17055; 
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .priority-cao { 
+            background: #ff6b6b; 
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .priority-trung-binh { 
+            background: #4ecdc4; 
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .priority-thap { 
+            background: #95e1d3;
+            color: #2d3436;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 18px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            min-width: 80px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #3498db, #2ecc71);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #27ae60;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .website-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+            margin-right: 5px;
+        }
+        
+        .tag-khoeplus {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .tag-greennutri {
+            background: #27ae60;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .controls, .stats, .tabs {
+                flex-direction: column;
+            }
+            
+            .table-container {
+                padding: 15px;
+            }
+            
+            table {
+                font-size: 11px;
+            }
+            
+            th, td {
+                padding: 6px 4px;
+            }
+            
+            .task-description {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Timeline Dự Án Website</h1>
+            <p>Khoeplus.today & Green Nutri Development Timeline</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('website')">Công Việc Website</div>
+            <div class="tab" onclick="showTab('articles')">Bài Viết</div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-success" onclick="exportToExcel()">📊 Xuất Excel</button>
+            <button class="btn btn-primary" onclick="filterByWebsite('all')">🌐 Tất Cả</button>
+            <button class="btn btn-primary" onclick="filterByWebsite('khoeplus')">🏥 Khoeplus</button>
+            <button class="btn btn-primary" onclick="filterByWebsite('greennutri')">🌱 Green Nutri</button>
+        </div>
+        
+        <div class="table-container">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">Tổng Công Việc</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedTasks">0</div>
+                    <div class="stat-label">Đã Hoàn Thành</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="inProgressTasks">0</div>
+                    <div class="stat-label">Đang Thực Hiện</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pendingTasks">0</div>
+                    <div class="stat-label">Chưa Bắt Đầu</div>
+                </div>
+            </div>
+            
+            <div id="website" class="tab-content">
+                <table id="websiteTable">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Website</th>
+                            <th>Tên Công Việc</th>
+                            <th>Mô Tả Chi Tiết</th>
+                            <th>Người Phụ Trách</th>
+                            <th>Ngày Bắt Đầu</th>
+                            <th>Ngày Kết Thúc</th>
+                            <th>Độ Ưu Tiên</th>
+                            <th>Trạng Thái</th>
+                            <th>Tiến Độ</th>
+                            <th>Ghi Chú</th>
+                        </tr>
+                    </thead>
+                    <tbody id="websiteTableBody"></tbody>
+                </table>
+            </div>
+            
+            <div id="articles" class="tab-content" style="display: none;">
+                <table id="articlesTable">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Website</th>
+                            <th>Tên Công Việc</th>
+                            <th>Mô Tả Chi Tiết</th>
+                            <th>Người Phụ Trách</th>
+                            <th>Ngày Bắt Đầu</th>
+                            <th>Ngày Kết Thúc</th>
+                            <th>Độ Ưu Tiên</th>
+                            <th>Trạng Thái</th>
+                            <th>Tiến Độ</th>
+                            <th>Ghi Chú</th>
+                        </tr>
+                    </thead>
+                    <tbody id="articlesTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google Sheets API configuration
+        const CLIENT_ID = 'YOUR_CLIENT_ID'; // Thay bằng Client ID từ Google Cloud Console
+        const API_KEY = 'YOUR_API_KEY'; // Thay bằng API Key từ Google Cloud Console
+        const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'; // Thay bằng Spreadsheet ID từ Google Sheet
+        const RANGE = 'Tasks!A2:K'; // Phạm vi lấy dữ liệu (bỏ hàng tiêu đề)
+
+        // Load Google API client
+        function initClient() {
+            gapi.client.init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+                scope: 'https://www.googleapis.com/auth/spreadsheets.readonly'
+            }).then(() => {
+                fetchData('website');
+            }, (error) => {
+                console.error('Error initializing Google API client:', error);
+            });
+        }
+
+        // Load Google API
+        gapi.load('client:auth2', initClient);
+
+        // Function to show/hide tabs
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            tabContents.forEach(content => content.style.display = 'none');
+            
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).style.display = 'block';
+            
+            filterByWebsite('all');
+            fetchData(tabName);
+        }
+
+        // Function to filter tasks by website
+        function filterByWebsite(website) {
+            const activeTab = document.querySelector('.tab.active').getAttribute('onclick').match(/'([^']+)'/)[1];
+            const tableBody = document.getElementById(`${activeTab}TableBody`);
+            const rows = tableBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                if (website === 'all' || row.getAttribute('data-website') === website.toLowerCase()) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Function to fetch data from Google Sheets
+        async function fetchData(tabName) {
+            try {
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: RANGE
+                });
+                
+                const rows = response.result.values || [];
+                const tableBody = document.getElementById(`${tabName}TableBody`);
+                tableBody.innerHTML = '';
+                
+                let totalTasks = 0;
+                let completedTasks = 0;
+                let inProgressTasks = 0;
+                let pendingTasks = 0;
+                
+                rows.forEach((row, index) => {
+                    const task = {
+                        type: row[0],
+                        website: row[1],
+                        name: row[2],
+                        description: row[3],
+                        assignee: row[4],
+                        start_date: row[5],
+                        end_date: row[6],
+                        priority: row[7],
+                        status: row[8],
+                        progress: parseInt(row[9]),
+                        notes: row[10]
+                    };
+                    
+                    if (task.type !== tabName) return;
+                    
+                    const rowElement = document.createElement('tr');
+                    rowElement.setAttribute('data-website', task.website.toLowerCase());
+                    
+                    const statusClass = {
+                        'Chưa Bắt Đầu': 'status-chua-bat-dau',
+                        'Đang Thực Hiện': 'status-dang-thuc-hien',
+                        'Hoàn Thành': 'status-hoan-thanh',
+                        'Tạm Dừng': 'status-tam-dung',
+                        'Hủy Bỏ': 'status-huy-bo'
+                    }[task.status] || 'status-chua-bat-dau';
+                    
+                    const priorityClass = {
+                        'Cao': 'priority-cao',
+                        'Trung Bình': 'priority-trung-binh',
+                        'Thấp': 'priority-thap'
+                    }[task.priority] || 'priority-thap';
+                    
+                    rowElement.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td><span class="website-tag tag-${task.website.toLowerCase()}">${task.website}</span></td>
+                        <td>${task.name}</td>
+                        <td class="task-description">${task.description}</td>
+                        <td>${task.assignee}</td>
+                        <td>${task.start_date}</td>
+                        <td>${task.end_date}</td>
+                        <td><span class="${priorityClass}">${task.priority}</span></td>
+                        <td><span class="${statusClass}">${task.status}</span></td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${task.progress}%"></div>
+                                <div class="progress-text">${task.progress}%</div>
+                            </div>
+                        </td>
+                        <td>${task.notes}</td>
+                    `;
+                    
+                    tableBody.appendChild(rowElement);
+                    
+                    totalTasks++;
+                    if (task.status === 'Hoàn Thành') completedTasks++;
+                    else if (task.status === 'Đang Thực Hiện') inProgressTasks++;
+                    else if (task.status === 'Chưa Bắt Đầu') pendingTasks++;
+                });
+                
+                document.getElementById('totalTasks').textContent = totalTasks;
+                document.getElementById('completedTasks').textContent = completedTasks;
+                document.getElementById('inProgressTasks').textContent = inProgressTasks;
+                document.getElementById('pendingTasks').textContent = pendingTasks;
+            } catch (error) {
+                console.error('Error fetching data from Google Sheets:', error);
+            }
+        }
+
+        // Function to export table to Excel
+        async function exportToExcel() {
+            try {
+                const activeTab = document.querySelector('.tab.active').getAttribute('onclick').match(/'([^']+)'/)[1];
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: RANGE
+                });
+                
+                const rows = response.result.values || [];
+                let csv = ['STT,Website,Tên Công Việc,Mô Tả Chi Tiết,Người Phụ Trách,Ngày Bắt Đầu,Ngày Kết Thúc,Độ Ưu Tiên,Trạng Thái,Tiến Độ,Ghi Chú'];
+                
+                rows.forEach((row, index) => {
+                    if (row[0] !== activeTab) return;
+                    const task = [
+                        index + 1,
+                        row[1],
+                        `"${row[2].replace(/"/g, '""')}"`,
+                        `"${row[3].replace(/"/g, '""')}"`,
+                        row[4],
+                        row[5],
+                        row[6],
+                        row[7],
+                        row[8],
+                        row[9],
+                        `"${row[10].replace(/"/g, '""')}"`
+                    ];
+                    csv.push(task.join(','));
+                });
+                
+                const csvContent = csv.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `timeline_${activeTab}_khoeplus_greennutri.csv`);
+                link.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error exporting to Excel:', error);
+            }
+        }
+    </script>
+</body>
+</html>
