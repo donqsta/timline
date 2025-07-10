@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://apis.google.com https://www.gstatic.com https://accounts.google.com 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://sheets.googleapis.com https://accounts.google.com https://api.grok.xai.com;">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://apis.google.com https://www.gstatic.com https://accounts.google.com 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://sheets.googleapis.com https://accounts.google.com;">
     <title>Timeline Dự Án Khoeplus.today & Green Nutri</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js"></script>
@@ -557,7 +557,6 @@
         const SPREADSHEET_ID = '1WgSYdTnQmdP1Pd6A56MdyeR5SeEmDgQkB4K-V4c8ucI';
         const RANGE = 'Tasks!A2:K';
         const SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
-        const GROK_API_KEY = 'xai-dytGTYKevnGjgC2uTAfAdGpzDr9FGUrHHD8P9iTzHWhhNBSjpwdNyzrhd2hAH6YJW8Jb2K65paQ0CtXI';
         const TODAY = '2025-07-11'; // Hard-coded for 11/07/2025
 
         let accessToken = localStorage.getItem('google_access_token');
@@ -621,49 +620,20 @@
             }
         }
 
-        // Fallback function to generate static suggestions
-        function generateStaticSuggestions(task) {
+        // Function to generate static suggestions
+        function generateSuggestions(task) {
             const { name, description, notes } = task;
             const text = `${name} ${description} ${notes}`.toLowerCase();
             if (text.includes('giao diện') || text.includes('ux/ui') || text.includes('responsive')) {
-                return 'Kiểm tra responsive với Chrome DevTools; Sử dụng Lighthouse để tối ưu UX/UI.';
+                return 'Kiểm tra responsive với DevTools; Dùng Lighthouse tối ưu UX.';
             } else if (text.includes('seo') || text.includes('tối ưu') || text.includes('từ khóa')) {
-                return 'Thêm meta tags với Yoast SEO; Tối ưu từ khóa chính và phụ; Cập nhật sitemap.xml.';
+                return 'Thêm meta tags với Yoast; Tối ưu từ khóa; Cập nhật sitemap.';
             } else if (text.includes('ai') || text.includes('tự động') || text.includes('chatbot')) {
-                return 'Kiểm tra tích hợp API AI; Thử nghiệm flow checkout; Log lỗi chi tiết.';
+                return 'Kiểm tra API AI; Thử nghiệm checkout flow; Log lỗi chi tiết.';
             } else if (text.includes('bài viết') || text.includes('nội dung')) {
-                return 'Tối ưu từ khóa chính; Thêm hình ảnh minh họa; Kiểm tra readability với Grammarly.';
+                return 'Tối ưu từ khóa; Thêm hình ảnh; Kiểm tra readability.';
             } else {
-                return 'Lập kế hoạch chi tiết; Theo dõi tiến độ hàng ngày; Đặt nhắc nhở trước hạn.';
-            }
-        }
-
-        // Function to fetch suggestions from Grok API
-        async function fetchGrokSuggestions(task) {
-            try {
-                const response = await fetch('https://api.grok.xai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${GROK_API_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'grok-3',
-                        messages: [{
-                            role: 'user',
-                            content: `Dựa trên thông tin công việc sau: Name: ${task.name}, Description: ${task.description}, Notes: ${task.notes}, Website: ${task.website}, hãy đưa ra gợi ý ngắn gọn (dưới 100 ký tự) để tối ưu hóa công việc này. Gợi ý phải liên quan đến nội dung công việc và website (Khoeplus hoặc Green Nutri).`
-                        }],
-                        max_tokens: 100
-                    })
-                });
-                const data = await response.json();
-                if (data.choices && data.choices[0] && data.choices[0].message) {
-                    return data.choices[0].message.content.trim();
-                }
-                return generateStaticSuggestions(task); // Fallback if API fails
-            } catch (error) {
-                console.error('Error fetching Grok API suggestion:', error);
-                return generateStaticSuggestions(task); // Fallback on error
+                return 'Lập kế hoạch chi tiết; Theo dõi tiến độ; Đặt nhắc nhở.';
             }
         }
 
@@ -747,8 +717,8 @@
                     const threeDaysFromNow = new Date(today);
                     threeDaysFromNow.setDate(today.getDate() + 3);
                     
-                    for (const [index, row] of rows.entries()) {
-                        if (!row[0]) continue; // Bỏ qua dòng trống
+                    rows.forEach((row, index) => {
+                        if (!row[0]) return; // Bỏ qua dòng trống
                         const task = {
                             type: row[0]?.trim(),
                             website: row[1]?.trim() || '',
@@ -766,7 +736,7 @@
                         const priority = priorityMap[task.priority] || 'Low';
                         const status = statusMap[task.status] || 'Pending';
                         const duration = calculateDuration(task.start_date, task.end_date);
-                        const suggestions = await fetchGrokSuggestions(task);
+                        const suggestions = generateSuggestions(task);
                         const startDate = new Date(task.start_date);
                         const endDate = new Date(task.end_date);
                         
@@ -829,13 +799,13 @@
                         if (status === 'Completed') completedTasks++;
                         else if (status === 'Inprogress') inProgressTasks++;
                         else if (status === 'Pending') pendingTasks++;
-                    }
+                    });
                 } else {
                     const tableBody = document.getElementById(`${tabName}TableBody`);
                     tableBody.innerHTML = '';
                     
-                    for (const [index, row] of rows.entries()) {
-                        if (!row[0]) continue; // Bỏ qua dòng trống
+                    rows.forEach((row, index) => {
+                        if (!row[0]) return; // Bỏ qua dòng trống
                         const task = {
                             type: row[0]?.trim(),
                             website: row[1]?.trim() || '',
@@ -850,7 +820,7 @@
                             notes: row[10]?.trim() || ''
                         };
                         
-                        if (task.type !== tabName) continue;
+                        if (task.type !== tabName) return;
                         
                         const rowElement = document.createElement('tr');
                         rowElement.setAttribute('data-website', task.website.toLowerCase().trim());
@@ -858,7 +828,6 @@
                         const priority = priorityMap[task.priority] || 'Low';
                         const status = statusMap[task.status] || 'Pending';
                         const duration = calculateDuration(task.start_date, task.end_date);
-                        const suggestions = await fetchGrokSuggestions(task);
                         
                         const statusClass = {
                             'Pending': 'status-pending',
@@ -900,7 +869,7 @@
                         if (status === 'Completed') completedTasks++;
                         else if (status === 'Inprogress') inProgressTasks++;
                         else if (status === 'Pending') pendingTasks++;
-                    }
+                    });
                 }
                 
                 document.getElementById('totalTasks').textContent = totalTasks;
@@ -952,8 +921,8 @@
                 };
                 
                 let index = 0;
-                for (const row of rows) {
-                    if (!row[0] || (activeTab !== 'reminders' && row[0] !== activeTab)) continue;
+                rows.forEach((row) => {
+                    if (!row[0] || (activeTab !== 'reminders' && row[0] !== activeTab)) return;
                     index++;
                     const task = {
                         type: row[0]?.trim(),
@@ -972,7 +941,6 @@
                     const duration = calculateDuration(task.start_date, task.end_date);
                     const priority = priorityMap[task.priority] || 'Low';
                     const status = statusMap[task.status] || 'Pending';
-                    const suggestions = await fetchGrokSuggestions(task);
                     let taskRow = [
                         index,
                         task.website,
@@ -989,11 +957,12 @@
                     ];
                     
                     if (activeTab === 'reminders') {
+                        const suggestions = generateSuggestions(task);
                         taskRow.push(`"${(suggestions || '').replace(/"/g, '""')}"`);
                     }
                     
                     csv.push(taskRow.join(','));
-                }
+                });
                 
                 const csvContent = csv.join('\n');
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
