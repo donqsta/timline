@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -197,16 +158,6 @@
         
         tr:hover td {
             background: #f8f9fa;
-        }
-        
-        .status-select {
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            padding: 8px 12px;
-            width: 100%;
-            font-size: 14px;
-            background: white;
-            cursor: pointer;
         }
         
         .status-chua-bat-dau { 
@@ -462,9 +413,9 @@
 
     <script>
         // Google Sheets API configuration
-        const CLIENT_ID = 'YOUR_CLIENT_ID'; // Thay bằng Client ID từ Google Cloud Console
-        const API_KEY = 'YOUR_API_KEY'; // Thay bằng API Key từ Google Cloud Console
-        const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'; // Thay bằng Spreadsheet ID từ Google Sheet
+        const CLIENT_ID = '905518212017-gor0a3p6necghfcor6u9v06a4p2vps3s.apps.googleusercontent.com'; // Thay bằng Client ID từ Google Cloud Console
+        const API_KEY = 'AIzaSyBSj848YvHiov4U4KWcOFitXsidQsZNc2c'; // Thay bằng API Key từ Google Cloud Console
+        const SPREADSHEET_ID = '1WgSYdTnQmdP1Pd6A56MdyeR5SeEmDgQkB4K-V4c8ucI'; // Thay bằng Spreadsheet ID từ Google Sheet
         const RANGE = 'Tasks!A2:K'; // Phạm vi lấy dữ liệu (bỏ hàng tiêu đề)
 
         // Load Google API client
@@ -532,18 +483,19 @@
                 let pendingTasks = 0;
                 
                 rows.forEach((row, index) => {
+                    if (!row[0]) return; // Bỏ qua dòng trống
                     const task = {
                         type: row[0],
-                        website: row[1],
-                        name: row[2],
-                        description: row[3],
-                        assignee: row[4],
-                        start_date: row[5],
-                        end_date: row[6],
-                        priority: row[7],
-                        status: row[8],
-                        progress: parseInt(row[9]),
-                        notes: row[10]
+                        website: row[1] || '',
+                        name: row[2] || '',
+                        description: row[3] || '',
+                        assignee: row[4] || '',
+                        start_date: row[5] || '',
+                        end_date: row[6] || '',
+                        priority: row[7] || '',
+                        status: row[8] || '',
+                        progress: parseInt(row[9]) || 0,
+                        notes: row[10] || ''
                     };
                     
                     if (task.type !== tabName) return;
@@ -613,20 +565,22 @@
                 const rows = response.result.values || [];
                 let csv = ['STT,Website,Tên Công Việc,Mô Tả Chi Tiết,Người Phụ Trách,Ngày Bắt Đầu,Ngày Kết Thúc,Độ Ưu Tiên,Trạng Thái,Tiến Độ,Ghi Chú'];
                 
-                rows.forEach((row, index) => {
-                    if (row[0] !== activeTab) return;
+                let index = 0;
+                rows.forEach((row) => {
+                    if (!row[0] || row[0] !== activeTab) return;
+                    index++;
                     const task = [
-                        index + 1,
-                        row[1],
-                        `"${row[2].replace(/"/g, '""')}"`,
-                        `"${row[3].replace(/"/g, '""')}"`,
-                        row[4],
-                        row[5],
-                        row[6],
-                        row[7],
-                        row[8],
-                        row[9],
-                        `"${row[10].replace(/"/g, '""')}"`
+                        index,
+                        row[1] || '',
+                        `"${(row[2] || '').replace(/"/g, '""')}"`,
+                        `"${(row[3] || '').replace(/"/g, '""')}"`,
+                        row[4] || '',
+                        row[5] || '',
+                        row[6] || '',
+                        row[7] || '',
+                        row[8] || '',
+                        row[9] || '0',
+                        `"${(row[10] || '').replace(/"/g, '""')}"`
                     ];
                     csv.push(task.join(','));
                 });
