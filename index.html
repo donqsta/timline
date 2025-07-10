@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://apis.google.com https://www.gstatic.com 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://sheets.googleapis.com https://accounts.google.com;">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://apis.google.com https://www.gstatic.com https://accounts.google.com 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://sheets.googleapis.com https://accounts.google.com;">
     <title>Timeline Dự Án Khoeplus.today & Green Nutri</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js"></script>
     <style>
         body {
@@ -94,6 +95,16 @@
         .btn-export:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-auth {
+            background: linear-gradient(45deg, #4285f4, #34a853);
+            color: white;
+        }
+        
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(66, 133, 244, 0.3);
         }
         
         .tabs {
@@ -336,16 +347,17 @@
             <p>Khoeplus.today & Green Nutri Development Timeline</p>
         </div>
         
-        <div class="tabs">
-            <div class="tab active" onclick="showTab('website')">Công Việc Website</div>
-            <div class="tab" onclick="showTab('articles')">Bài Viết</div>
-        </div>
-        
         <div class="controls">
+            <button class="btn btn-auth" onclick="signInWithGoogle()">🔑 Đăng nhập với Google</button>
             <button class="btn btn-success" onclick="exportToExcel()">📊 Xuất Excel</button>
             <button class="btn btn-primary" onclick="filterByWebsite('all')">🌐 Tất Cả</button>
             <button class="btn btn-primary" onclick="filterByWebsite('khoeplus')">🏥 Khoeplus</button>
             <button class="btn btn-primary" onclick="filterByWebsite('greennutri')">🌱 Green Nutri</button>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('website')">Công Việc Website</div>
+            <div class="tab" onclick="showTab('articles')">Bài Viết</div>
         </div>
         
         <div class="table-container">
@@ -416,30 +428,24 @@
         // Google Sheets API configuration
         const CLIENT_ID = '905518212017-gor0a3p6necghfcor6u9v06a4p2vps3s.apps.googleusercontent.com';
         const API_KEY = 'AIzaSyBSj848YvHiov4U4KWcOFitXsidQsZNc2c';
-        const SPREADSHEET_ID = '1WgSYdTnQmdP1Pd6A56MdyeR5SeEmDgQkB4K-V4c8ucI'; // Thay bằng Spreadsheet ID từ Google Sheet
-        const RANGE = 'Tasks!A2:K'; // Phạm vi lấy dữ liệu (bỏ hàng tiêu đề)
+        const SPREADSHEET_ID = '1WgSYdTnQmdP1Pd6A56MdyeR5SeEmDgQkB4K-V4c8ucI';
+        const RANGE = 'Tasks!A2:K';
         const SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
 
-        // Load Google API client
+        let accessToken = null;
+
+        // Initialize Google API client
         function initClient() {
-            gapi.load('client:auth2', () => {
+            gapi.load('client', () => {
                 gapi.client.init({
                     apiKey: API_KEY,
-                    clientId: CLIENT_ID,
-                    discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-                    scope: SCOPE
+                    discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
                 }).then(() => {
-                    // Kiểm tra trạng thái đăng nhập
-                    const authInstance = gapi.auth2.getAuthInstance();
-                    if (!authInstance.isSignedIn.get()) {
-                        // Yêu cầu đăng nhập để hiển thị hộp thoại xác thực
-                        authInstance.signIn().then(() => {
-                            fetchData('website');
-                        }, (error) => {
-                            console.error('Error during sign-in:', error);
-                            alert('Lỗi xác thực Google. Vui lòng kiểm tra Client ID hoặc Authorized JavaScript Origins.');
-                        });
+                    // Kiểm tra xem đã có token chưa
+                    if (!accessToken) {
+                        alert('Vui lòng nhấn "Đăng nhập với Google" để cấp quyền truy cập.');
                     } else {
+                        gapi.client.setToken({ access_token: accessToken });
                         fetchData('website');
                     }
                 }, (error) => {
@@ -447,6 +453,25 @@
                     alert('Lỗi khởi tạo Google API. Vui lòng kiểm tra Client ID, API Key, hoặc Authorized JavaScript Origins.');
                 });
             });
+        }
+
+        // Sign in with Google
+        function signInWithGoogle() {
+            const client = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPE,
+                callback: (response) => {
+                    if (response.error) {
+                        console.error('Error during sign-in:', response);
+                        alert('Lỗi xác thực Google: ' + response.error);
+                        return;
+                    }
+                    accessToken = response.access_token;
+                    gapi.client.setToken({ access_token: accessToken });
+                    fetchData('website');
+                }
+            });
+            client.requestAccessToken();
         }
 
         // Function to show/hide tabs
@@ -461,7 +486,11 @@
             document.getElementById(tabName).style.display = 'block';
             
             filterByWebsite('all');
-            fetchData(tabName);
+            if (accessToken) {
+                fetchData(tabName);
+            } else {
+                alert('Vui lòng đăng nhập với Google để tải dữ liệu.');
+            }
         }
 
         // Function to filter tasks by website
@@ -570,6 +599,10 @@
 
         // Function to export table to Excel
         async function exportToExcel() {
+            if (!accessToken) {
+                alert('Vui lòng đăng nhập với Google trước khi xuất Excel.');
+                return;
+            }
             try {
                 const activeTab = document.querySelector('.tab.active').getAttribute('onclick').match(/'([^']+)'/)[1];
                 const response = await gapi.client.sheets.spreadsheets.values.get({
@@ -615,7 +648,7 @@
         }
 
         // Khởi động Google API
-        gapi.load('client:auth2', initClient);
+        initClient();
     </script>
 </body>
 </html>
