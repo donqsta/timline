@@ -317,6 +317,34 @@
             color: white;
         }
         
+        .overdue {
+            background: #ff4d4d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .due-soon {
+            background: #ffd700;
+            color: #2d3436;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .reminder-section {
+            margin-bottom: 30px;
+        }
+        
+        .reminder-section h3 {
+            font-size: 1.2em;
+            color: #2d3436;
+            margin-bottom: 15px;
+        }
+        
         @media (max-width: 768px) {
             .controls, .stats, .tabs {
                 flex-direction: column;
@@ -358,6 +386,7 @@
         <div class="tabs">
             <div class="tab active" onclick="showTab('website')">Công Việc Website</div>
             <div class="tab" onclick="showTab('articles')">Bài Viết</div>
+            <div class="tab" onclick="showTab('reminders')">Nhắc Nhở Công Việc</div>
         </div>
         
         <div class="table-container">
@@ -423,6 +452,78 @@
                     <tbody id="articlesTableBody"></tbody>
                 </table>
             </div>
+            
+            <div id="reminders" class="tab-content" style="display: none;">
+                <div class="reminder-section">
+                    <h3>Công Việc Hôm Nay (11/07/2025)</h3>
+                    <table id="todayTable">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Website</th>
+                                <th>Tên Công Việc</th>
+                                <th>Mô Tả Chi Tiết</th>
+                                <th>Người Phụ Trách</th>
+                                <th>Ngày Bắt Đầu</th>
+                                <th>Ngày Kết Thúc</th>
+                                <th>Duration (Days)</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Tiến Độ</th>
+                                <th>Ghi Chú</th>
+                                <th>Suggestions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="todayTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="reminder-section">
+                    <h3>Công Việc Sắp Đến Hạn hoặc Quá Hạn</h3>
+                    <table id="dueTable">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Website</th>
+                                <th>Tên Công Việc</th>
+                                <th>Mô Tả Chi Tiết</th>
+                                <th>Người Phụ Trách</th>
+                                <th>Ngày Bắt Đầu</th>
+                                <th>Ngày Kết Thúc</th>
+                                <th>Duration (Days)</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Tiến Độ</th>
+                                <th>Ghi Chú</th>
+                                <th>Suggestions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dueTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="reminder-section">
+                    <h3>Công Việc Sắp Tới</h3>
+                    <table id="upcomingTable">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Website</th>
+                                <th>Tên Công Việc</th>
+                                <th>Mô Tả Chi Tiết</th>
+                                <th>Người Phụ Trách</th>
+                                <th>Ngày Bắt Đầu</th>
+                                <th>Ngày Kết Thúc</th>
+                                <th>Duration (Days)</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Tiến Độ</th>
+                                <th>Ghi Chú</th>
+                                <th>Suggestions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="upcomingTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -433,6 +534,7 @@
         const SPREADSHEET_ID = '1WgSYdTnQmdP1Pd6A56MdyeR5SeEmDgQkB4K-V4c8ucI';
         const RANGE = 'Tasks!A2:K';
         const SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+        const TODAY = '2025-07-11'; // Hard-coded for 11/07/2025
 
         let accessToken = localStorage.getItem('google_access_token');
 
@@ -495,6 +597,23 @@
             }
         }
 
+        // Function to generate suggestions based on task
+        function generateSuggestions(task) {
+            const { name, description, notes } = task;
+            const text = `${name} ${description} ${notes}`.toLowerCase();
+            if (text.includes('giao diện') || text.includes('ux/ui') || text.includes('responsive')) {
+                return 'Kiểm tra responsive với Chrome DevTools; Sử dụng Lighthouse để tối ưu UX/UI.';
+            } else if (text.includes('seo') || text.includes('tối ưu') || text.includes('từ khóa')) {
+                return 'Thêm meta tags với Yoast SEO; Tối ưu từ khóa chính và phụ; Cập nhật sitemap.xml.';
+            } else if (text.includes('ai') || text.includes('tự động') || text.includes('chatbot')) {
+                return 'Kiểm tra tích hợp API AI; Thử nghiệm flow checkout; Log lỗi chi tiết.';
+            } else if (text.includes('bài viết') || text.includes('nội dung')) {
+                return 'Tối ưu từ khóa chính; Thêm hình ảnh minh họa; Kiểm tra readability với Grammarly.';
+            } else {
+                return 'Lập kế hoạch chi tiết; Theo dõi tiến độ hàng ngày; Đặt nhắc nhở trước hạn.';
+            }
+        }
+
         // Function to show/hide tabs
         function showTab(tabName) {
             const tabs = document.querySelectorAll('.tab');
@@ -517,16 +636,20 @@
         // Function to filter tasks by website
         function filterByWebsite(website) {
             const activeTab = document.querySelector('.tab.active').getAttribute('onclick').match(/'([^']+)'/)[1];
-            const tableBody = document.getElementById(`${activeTab}TableBody`);
-            const rows = tableBody.querySelectorAll('tr');
+            const tableBodies = activeTab === 'reminders' 
+                ? [document.getElementById('todayTableBody'), document.getElementById('dueTableBody'), document.getElementById('upcomingTableBody')]
+                : [document.getElementById(`${activeTab}TableBody`)];
             
-            rows.forEach(row => {
-                const websiteAttr = (row.getAttribute('data-website') || '').toLowerCase().trim();
-                if (website === 'all' || websiteAttr === website.toLowerCase().trim()) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+            tableBodies.forEach(tableBody => {
+                const rows = tableBody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const websiteAttr = (row.getAttribute('data-website') || '').toLowerCase().trim();
+                    if (website === 'all' || websiteAttr === website.toLowerCase().trim()) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
             });
         }
 
@@ -539,93 +662,188 @@
                 });
                 
                 const rows = response.result.values || [];
-                const tableBody = document.getElementById(`${tabName}TableBody`);
-                tableBody.innerHTML = '';
-                
                 let totalTasks = 0;
                 let completedTasks = 0;
                 let inProgressTasks = 0;
                 let pendingTasks = 0;
                 
-                rows.forEach((row, index) => {
-                    if (!row[0]) return; // Bỏ qua dòng trống
-                    const task = {
-                        type: row[0]?.trim(),
-                        website: row[1]?.trim() || '',
-                        name: row[2]?.trim() || '',
-                        description: row[3]?.trim() || '',
-                        assignee: row[4]?.trim() || '',
-                        start_date: row[5]?.trim() || '',
-                        end_date: row[6]?.trim() || '',
-                        priority: row[7]?.trim() || '',
-                        status: row[8]?.trim() || '',
-                        progress: parseInt(row[9]) || 0,
-                        notes: row[10]?.trim() || ''
-                    };
+                const priorityMap = {
+                    'Cao': 'High',
+                    'Trung Bình': 'Medium',
+                    'Thấp': 'Low'
+                };
+                const statusMap = {
+                    'Chưa Bắt Đầu': 'Pending',
+                    'Đang Thực Hiện': 'InProgress',
+                    'Hoàn Thành': 'Completed',
+                    'Tạm Dừng': 'Paused',
+                    'Hủy Bỏ': 'Canceled'
+                };
+                
+                if (tabName === 'reminders') {
+                    const todayTableBody = document.getElementById('todayTableBody');
+                    const dueTableBody = document.getElementById('dueTableBody');
+                    const upcomingTableBody = document.getElementById('upcomingTableBody');
+                    todayTableBody.innerHTML = '';
+                    dueTableBody.innerHTML = '';
+                    upcomingTableBody.innerHTML = '';
                     
-                    if (task.type !== tabName) return;
+                    const today = new Date(TODAY);
+                    const threeDaysFromNow = new Date(today);
+                    threeDaysFromNow.setDate(today.getDate() + 3);
                     
-                    const rowElement = document.createElement('tr');
-                    rowElement.setAttribute('data-website', task.website.toLowerCase().trim());
+                    rows.forEach((row, index) => {
+                        if (!row[0]) return; // Bỏ qua dòng trống
+                        const task = {
+                            type: row[0]?.trim(),
+                            website: row[1]?.trim() || '',
+                            name: row[2]?.trim() || '',
+                            description: row[3]?.trim() || '',
+                            assignee: row[4]?.trim() || '',
+                            start_date: row[5]?.trim() || '',
+                            end_date: row[6]?.trim() || '',
+                            priority: row[7]?.trim() || '',
+                            status: row[8]?.trim() || '',
+                            progress: parseInt(row[9]) || 0,
+                            notes: row[10]?.trim() || ''
+                        };
+                        
+                        const priority = priorityMap[task.priority] || 'Low';
+                        const status = statusMap[task.status] || 'Pending';
+                        const duration = calculateDuration(task.start_date, task.end_date);
+                        const suggestions = generateSuggestions(task);
+                        const startDate = new Date(task.start_date);
+                        const endDate = new Date(task.end_date);
+                        
+                        const rowElement = document.createElement('tr');
+                        rowElement.setAttribute('data-website', task.website.toLowerCase().trim());
+                        
+                        const statusClass = {
+                            'Pending': 'status-pending',
+                            'InProgress': 'status-in-progress',
+                            'Completed': 'status-completed',
+                            'Paused': 'status-paused',
+                            'Canceled': 'status-canceled'
+                        }[status] || 'status-pending';
+                        
+                        const priorityClass = {
+                            'High': 'priority-high',
+                            'Medium': 'priority-medium',
+                            'Low': 'priority-low'
+                        }[priority] || 'priority-low';
+                        
+                        let warningClass = '';
+                        if (status !== 'Completed' && endDate < today) {
+                            warningClass = 'overdue';
+                        } else if (status !== 'Completed' && endDate <= threeDaysFromNow && endDate >= today) {
+                            warningClass = 'due-soon';
+                        }
+                        
+                        rowElement.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td><span class="website-tag tag-${task.website.toLowerCase().trim()}">${task.website}</span></td>
+                            <td>${task.name}</td>
+                            <td class="task-description">${task.description}</td>
+                            <td>${task.assignee}</td>
+                            <td>${task.start_date}</td>
+                            <td>${task.end_date}</td>
+                            <td>${duration}</td>
+                            <td><span class="${priorityClass}">${priority}</span></td>
+                            <td><span class="${statusClass} ${warningClass}">${status}</span></td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${task.progress}%"></div>
+                                    <div class="progress-text">${task.progress}%</div>
+                                </div>
+                            </td>
+                            <td>${task.notes}</td>
+                            <td>${suggestions}</td>
+                        `;
+                        
+                        if (task.start_date === TODAY || task.end_date === TODAY) {
+                            todayTableBody.appendChild(rowElement.cloneNode(true));
+                        } else if (status !== 'Completed' && endDate <= threeDaysFromNow) {
+                            dueTableBody.appendChild(rowElement.cloneNode(true));
+                        } else if (startDate > today) {
+                            upcomingTableBody.appendChild(rowElement.cloneNode(true));
+                        }
+                        
+                        totalTasks++;
+                        if (status === 'Completed') completedTasks++;
+                        else if (status === 'InProgress') inProgressTasks++;
+                        else if (status === 'Pending') pendingTasks++;
+                    });
+                } else {
+                    const tableBody = document.getElementById(`${tabName}TableBody`);
+                    tableBody.innerHTML = '';
                     
-                    const priorityMap = {
-                        'Cao': 'High',
-                        'Trung Bình': 'Medium',
-                        'Thấp': 'Low'
-                    };
-                    const statusMap = {
-                        'Chưa Bắt Đầu': 'Pending',
-                        'Đang Thực Hiện': 'InProgress',
-                        'Hoàn Thành': 'Completed',
-                        'Tạm Dừng': 'Paused',
-                        'Hủy Bỏ': 'Canceled'
-                    };
-                    
-                    const priority = priorityMap[task.priority] || 'Low';
-                    const status = statusMap[task.status] || 'Pending';
-                    const duration = calculateDuration(task.start_date, task.end_date);
-                    
-                    const statusClass = {
-                        'Pending': 'status-pending',
-                        'InProgress': 'status-in-progress',
-                        'Completed': 'status-completed',
-                        'Paused': 'status-paused',
-                        'Canceled': 'status-canceled'
-                    }[status] || 'status-pending';
-                    
-                    const priorityClass = {
-                        'High': 'priority-high',
-                        'Medium': 'priority-medium',
-                        'Low': 'priority-low'
-                    }[priority] || 'priority-low';
-                    
-                    rowElement.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td><span class="website-tag tag-${task.website.toLowerCase().trim()}">${task.website}</span></td>
-                        <td>${task.name}</td>
-                        <td class="task-description">${task.description}</td>
-                        <td>${task.assignee}</td>
-                        <td>${task.start_date}</td>
-                        <td>${task.end_date}</td>
-                        <td>${duration}</td>
-                        <td><span class="${priorityClass}">${priority}</span></td>
-                        <td><span class="${statusClass}">${status}</span></td>
-                        <td>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${task.progress}%"></div>
-                                <div class="progress-text">${task.progress}%</div>
-                            </div>
-                        </td>
-                        <td>${task.notes}</td>
-                    `;
-                    
-                    tableBody.appendChild(rowElement);
-                    
-                    totalTasks++;
-                    if (status === 'Completed') completedTasks++;
-                    else if (status === 'InProgress') inProgressTasks++;
-                    else if (status === 'Pending') pendingTasks++;
-                });
+                    rows.forEach((row, index) => {
+                        if (!row[0]) return; // Bỏ qua dòng trống
+                        const task = {
+                            type: row[0]?.trim(),
+                            website: row[1]?.trim() || '',
+                            name: row[2]?.trim() || '',
+                            description: row[3]?.trim() || '',
+                            assignee: row[4]?.trim() || '',
+                            start_date: row[5]?.trim() || '',
+                            end_date: row[6]?.trim() || '',
+                            priority: row[7]?.trim() || '',
+                            status: row[8]?.trim() || '',
+                            progress: parseInt(row[9]) || 0,
+                            notes: row[10]?.trim() || ''
+                        };
+                        
+                        if (task.type !== tabName) return;
+                        
+                        const rowElement = document.createElement('tr');
+                        rowElement.setAttribute('data-website', task.website.toLowerCase().trim());
+                        
+                        const priority = priorityMap[task.priority] || 'Low';
+                        const status = statusMap[task.status] || 'Pending';
+                        const duration = calculateDuration(task.start_date, task.end_date);
+                        
+                        const statusClass = {
+                            'Pending': 'status-pending',
+                            'InProgress': 'status-in-progress',
+                            'Completed': 'status-completed',
+                            'Paused': 'status-paused',
+                            'Canceled': 'status-canceled'
+                        }[status] || 'status-pending';
+                        
+                        const priorityClass = {
+                            'High': 'priority-high',
+                            'Medium': 'priority-medium',
+                            'Low': 'priority-low'
+                        }[priority] || 'priority-low';
+                        
+                        rowElement.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td><span class="website-tag tag-${task.website.toLowerCase().trim()}">${task.website}</span></td>
+                            <td>${task.name}</td>
+                            <td class="task-description">${task.description}</td>
+                            <td>${task.assignee}</td>
+                            <td>${task.start_date}</td>
+                            <td>${task.end_date}</td>
+                            <td>${duration}</td>
+                            <td><span class="${priorityClass}">${priority}</span></td>
+                            <td><span class="${statusClass}">${status}</span></td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${task.progress}%"></div>
+                                    <div class="progress-text">${task.progress}%</div>
+                                </div>
+                            </td>
+                            <td>${task.notes}</td>
+                        `;
+                        
+                        tableBody.appendChild(rowElement);
+                        
+                        totalTasks++;
+                        if (status === 'Completed') completedTasks++;
+                        else if (status === 'InProgress') inProgressTasks++;
+                        else if (status === 'Pending') pendingTasks++;
+                    });
+                }
                 
                 document.getElementById('totalTasks').textContent = totalTasks;
                 document.getElementById('completedTasks').textContent = completedTasks;
@@ -658,6 +876,9 @@
                 
                 const rows = response.result.values || [];
                 let csv = ['STT,Website,Tên Công Việc,Mô Tả Chi Tiết,Người Phụ Trách,Ngày Bắt Đầu,Ngày Kết Thúc,Duration (Days),Priority,Status,Tiến Độ,Ghi Chú'];
+                if (activeTab === 'reminders') {
+                    csv = ['STT,Website,Tên Công Việc,Mô Tả Chi Tiết,Người Phụ Trách,Ngày Bắt Đầu,Ngày Kết Thúc,Duration (Days),Priority,Status,Tiến Độ,Ghi Chú,Suggestions'];
+                }
                 
                 const priorityMap = {
                     'Cao': 'High',
@@ -674,26 +895,46 @@
                 
                 let index = 0;
                 rows.forEach((row) => {
-                    if (!row[0] || row[0] !== activeTab) return;
+                    if (!row[0] || (activeTab !== 'reminders' && row[0] !== activeTab)) return;
                     index++;
-                    const duration = calculateDuration(row[5]?.trim(), row[6]?.trim());
-                    const priority = priorityMap[row[7]?.trim()] || 'Low';
-                    const status = statusMap[row[8]?.trim()] || 'Pending';
-                    const task = [
+                    const task = {
+                        type: row[0]?.trim(),
+                        website: row[1]?.trim() || '',
+                        name: row[2]?.trim() || '',
+                        description: row[3]?.trim() || '',
+                        assignee: row[4]?.trim() || '',
+                        start_date: row[5]?.trim() || '',
+                        end_date: row[6]?.trim() || '',
+                        priority: row[7]?.trim() || '',
+                        status: row[8]?.trim() || '',
+                        progress: parseInt(row[9]) || 0,
+                        notes: row[10]?.trim() || ''
+                    };
+                    
+                    const duration = calculateDuration(task.start_date, task.end_date);
+                    const priority = priorityMap[task.priority] || 'Low';
+                    const status = statusMap[task.status] || 'Pending';
+                    let taskRow = [
                         index,
-                        row[1]?.trim() || '',
-                        `"${(row[2]?.trim() || '').replace(/"/g, '""')}"`,
-                        `"${(row[3]?.trim() || '').replace(/"/g, '""')}"`,
-                        row[4]?.trim() || '',
-                        row[5]?.trim() || '',
-                        row[6]?.trim() || '',
+                        task.website,
+                        `"${(task.name || '').replace(/"/g, '""')}"`,
+                        `"${(task.description || '').replace(/"/g, '""')}"`,
+                        task.assignee,
+                        task.start_date,
+                        task.end_date,
                         duration,
                         priority,
                         status,
-                        row[9] || '0',
-                        `"${(row[10]?.trim() || '').replace(/"/g, '""')}"`
+                        task.progress,
+                        `"${(task.notes || '').replace(/"/g, '""')}"`
                     ];
-                    csv.push(task.join(','));
+                    
+                    if (activeTab === 'reminders') {
+                        const suggestions = generateSuggestions(task);
+                        taskRow.push(`"${(suggestions || '').replace(/"/g, '""')}"`);
+                    }
+                    
+                    csv.push(taskRow.join(','));
                 });
                 
                 const csvContent = csv.join('\n');
