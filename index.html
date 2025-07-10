@@ -575,7 +575,7 @@
                     };
                     const statusMap = {
                         'Chưa Bắt Đầu': 'Pending',
-                        'Đang Thực Hiện': 'In Progress',
+                        'Đang Thực Hiện': 'InProgress',
                         'Hoàn Thành': 'Completed',
                         'Tạm Dừng': 'Paused',
                         'Hủy Bỏ': 'Canceled'
@@ -587,7 +587,7 @@
                     
                     const statusClass = {
                         'Pending': 'status-pending',
-                        'In Progress': 'status-in-progress',
+                        'InProgress': 'status-in-progress',
                         'Completed': 'status-completed',
                         'Paused': 'status-paused',
                         'Canceled': 'status-canceled'
@@ -623,7 +623,7 @@
                     
                     totalTasks++;
                     if (status === 'Completed') completedTasks++;
-                    else if (status === 'In Progress') inProgressTasks++;
+                    else if (status === 'InProgress') inProgressTasks++;
                     else if (status === 'Pending') pendingTasks++;
                 });
                 
