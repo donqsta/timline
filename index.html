@@ -432,7 +432,7 @@
         const RANGE = 'Tasks!A2:K';
         const SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
 
-        let accessToken = null;
+        let accessToken = localStorage.getItem('google_access_token');
 
         // Initialize Google API client
         function initClient() {
@@ -441,12 +441,11 @@
                     apiKey: API_KEY,
                     discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
                 }).then(() => {
-                    // Kiểm tra xem đã có token chưa
-                    if (!accessToken) {
-                        alert('Vui lòng nhấn "Đăng nhập với Google" để cấp quyền truy cập.');
-                    } else {
+                    if (accessToken) {
                         gapi.client.setToken({ access_token: accessToken });
                         fetchData('website');
+                    } else {
+                        alert('Vui lòng nhấn "Đăng nhập với Google" để cấp quyền truy cập.');
                     }
                 }, (error) => {
                     console.error('Error initializing Google API client:', error);
@@ -467,6 +466,7 @@
                         return;
                     }
                     accessToken = response.access_token;
+                    localStorage.setItem('google_access_token', accessToken);
                     gapi.client.setToken({ access_token: accessToken });
                     fetchData('website');
                 }
@@ -500,7 +500,8 @@
             const rows = tableBody.querySelectorAll('tr');
             
             rows.forEach(row => {
-                if (website === 'all' || row.getAttribute('data-website') === website.toLowerCase()) {
+                const websiteAttr = (row.getAttribute('data-website') || '').toLowerCase().trim();
+                if (website === 'all' || websiteAttr === website.toLowerCase().trim()) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -528,23 +529,23 @@
                 rows.forEach((row, index) => {
                     if (!row[0]) return; // Bỏ qua dòng trống
                     const task = {
-                        type: row[0],
-                        website: row[1] || '',
-                        name: row[2] || '',
-                        description: row[3] || '',
-                        assignee: row[4] || '',
-                        start_date: row[5] || '',
-                        end_date: row[6] || '',
-                        priority: row[7] || '',
-                        status: row[8] || '',
+                        type: row[0]?.trim(),
+                        website: row[1]?.trim() || '',
+                        name: row[2]?.trim() || '',
+                        description: row[3]?.trim() || '',
+                        assignee: row[4]?.trim() || '',
+                        start_date: row[5]?.trim() || '',
+                        end_date: row[6]?.trim() || '',
+                        priority: row[7]?.trim() || '',
+                        status: row[8]?.trim() || '',
                         progress: parseInt(row[9]) || 0,
-                        notes: row[10] || ''
+                        notes: row[10]?.trim() || ''
                     };
                     
                     if (task.type !== tabName) return;
                     
                     const rowElement = document.createElement('tr');
-                    rowElement.setAttribute('data-website', task.website.toLowerCase());
+                    rowElement.setAttribute('data-website', task.website.toLowerCase().trim());
                     
                     const statusClass = {
                         'Chưa Bắt Đầu': 'status-chua-bat-dau',
@@ -562,7 +563,7 @@
                     
                     rowElement.innerHTML = `
                         <td>${index + 1}</td>
-                        <td><span class="website-tag tag-${task.website.toLowerCase()}">${task.website}</span></td>
+                        <td><span class="website-tag tag-${task.website.toLowerCase().trim()}">${task.website}</span></td>
                         <td>${task.name}</td>
                         <td class="task-description">${task.description}</td>
                         <td>${task.assignee}</td>
@@ -619,16 +620,16 @@
                     index++;
                     const task = [
                         index,
-                        row[1] || '',
-                        `"${(row[2] || '').replace(/"/g, '""')}"`,
-                        `"${(row[3] || '').replace(/"/g, '""')}"`,
-                        row[4] || '',
-                        row[5] || '',
-                        row[6] || '',
-                        row[7] || '',
-                        row[8] || '',
+                        row[1]?.trim() || '',
+                        `"${(row[2]?.trim() || '').replace(/"/g, '""')}"`,
+                        `"${(row[3]?.trim() || '').replace(/"/g, '""')}"`,
+                        row[4]?.trim() || '',
+                        row[5]?.trim() || '',
+                        row[6]?.trim() || '',
+                        row[7]?.trim() || '',
+                        row[8]?.trim() || '',
                         row[9] || '0',
-                        `"${(row[10] || '').replace(/"/g, '""')}"`
+                        `"${(row[10]?.trim() || '').replace(/"/g, '""')}"`
                     ];
                     csv.push(task.join(','));
                 });
