@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://apis.google.com https://www.gstatic.com 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://sheets.googleapis.com https://accounts.google.com;">
     <title>Timeline Dự Án Khoeplus.today & Green Nutri</title>
     <script src="https://apis.google.com/js/api.js"></script>
     <style>
@@ -413,7 +414,8 @@
 
     <script>
         // Google Sheets API configuration
-        const CLIENT_ID = '905518212017-gor0a3p6necghfcor6u9v06a4p2vps3s.apps.googleusercontent.com'; // Thay bằng Client ID từ Google Cloud Console
+        const CLIENT_ID = '905518212017-gor0a3p6necghfcor6u9v06a4p2vps3s.apps.googleusercontent.com
+'; // Thay bằng Client ID từ Google Cloud Console
         const API_KEY = 'AIzaSyBSj848YvHiov4U4KWcOFitXsidQsZNc2c'; // Thay bằng API Key từ Google Cloud Console
         const SPREADSHEET_ID = '1WgSYdTnQmdP1Pd6A56MdyeR5SeEmDgQkB4K-V4c8ucI'; // Thay bằng Spreadsheet ID từ Google Sheet
         const RANGE = 'Tasks!A2:K'; // Phạm vi lấy dữ liệu (bỏ hàng tiêu đề)
@@ -429,6 +431,7 @@
                 fetchData('website');
             }, (error) => {
                 console.error('Error initializing Google API client:', error);
+                alert('Lỗi khởi tạo Google API. Vui lòng kiểm tra Client ID, API Key, hoặc Authorized JavaScript Origins.');
             });
         }
 
@@ -550,6 +553,7 @@
                 document.getElementById('pendingTasks').textContent = pendingTasks;
             } catch (error) {
                 console.error('Error fetching data from Google Sheets:', error);
+                alert('Lỗi tải dữ liệu từ Google Sheets. Vui lòng kiểm tra Spreadsheet ID hoặc quyền truy cập.');
             }
         }
 
@@ -595,6 +599,7 @@
                 URL.revokeObjectURL(url);
             } catch (error) {
                 console.error('Error exporting to Excel:', error);
+                alert('Lỗi xuất file CSV. Vui lòng kiểm tra kết nối Google Sheets.');
             }
         }
     </script>
