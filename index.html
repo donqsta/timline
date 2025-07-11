@@ -12,47 +12,48 @@
             font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #f75002 0%, #df4801 100%);
+            background: linear-gradient(135deg, #fce4ec 0%, #d4f4e2 100%);
             min-height: 100vh;
-            color: #fff;
+            color: #333;
         }
         
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(252, 228, 236, 0.2);
             backdrop-filter: blur(12px);
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(236, 239, 241, 0.5);
             overflow: hidden;
         }
         
         .header {
-            background: #f75002;
+            background: #e6d9fa;
             padding: 30px;
             text-align: center;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid rgba(236, 239, 241, 0.5);
         }
         
         .header h1 {
             margin: 0;
             font-size: 2.5em;
             font-weight: 500;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            color: #1a1a1a;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
         }
         
         .header p {
             margin: 10px 0 0 0;
             font-size: 1.1em;
-            opacity: 0.9;
+            color: #1a1a1a;
         }
         
         .controls {
             padding: 20px 30px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(252, 228, 236, 0.15);
             backdrop-filter: blur(8px);
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid rgba(236, 239, 241, 0.5);
             display: flex;
             gap: 15px;
             align-items: center;
@@ -66,60 +67,64 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(252, 228, 236, 0.2);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            color: #fff;
+            border: 2px solid rgba(236, 239, 241, 0.5);
+            color: #1a1a1a;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         
         .btn-primary {
-            background: #f75002;
+            background: #e6d9fa;
         }
         
         .btn-primary:hover {
-            background: #ea580c;
+            background: #d4f4e2;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(194, 65, 12, 0.4);
+            box-shadow: 0 8px 20px rgba(212, 244, 226, 0.4);
+            color: #1a1a1a;
         }
         
         .btn-success {
-            background: #00b7eb;
+            background: #d4f4e2;
+            color: #333;
         }
         
         .btn-success:hover {
-            background: #00a3cc;
+            background: #b9e8cd;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 183, 235, 0.4);
+            box-shadow: 0 8px 20px rgba(185, 232, 205, 0.4);
         }
         
         .btn-export {
-            background: #b91c1c;
+            background: #ffebee;
+            color: #333;
         }
         
         .btn-export:hover {
-            background: #991b1b;
+            background: #ffccd1;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(185, 28, 28, 0.4);
+            box-shadow: 0 8px 20px rgba(255, 235, 238, 0.4);
         }
         
         .btn-auth {
-            background: #f75002;
+            background: #e6d9fa;
         }
         
         .btn-auth:hover {
-            background: #ea580c;
+            background: #d4f4e2;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(194, 65, 12, 0.4);
+            box-shadow: 0 8px 20px rgba(212, 244, 226, 0.4);
+            color: #1a1a1a;
         }
         
         .tabs {
             display: flex;
             gap: 10px;
             padding: 10px 30px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(252, 228, 236, 0.15);
             backdrop-filter: blur(8px);
         }
         
@@ -129,22 +134,23 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
-            background: #f75002;
+            background: #e6d9fa;
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            color: #fff;
+            border: 2px solid rgba(236, 239, 241, 0.5);
+            color: #1a1a1a;
             transition: all 0.3s ease;
         }
         
         .tab.active {
-            background: #00b7eb;
-            border: 2px solid rgba(255, 255, 255, 0.6);
-            color: #fff;
+            background: #d4f4e2;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            color: #1a1a1a;
         }
         
         .tab:hover {
-            background: #00b7eb;
+            background: #d4f4e2;
             transform: translateY(-2px);
+            color: #1a1a1a;
         }
         
         .table-container {
@@ -158,41 +164,42 @@
             margin-top: 20px;
             border-radius: 10px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.01);
+            background: rgba(252, 228, 236, 0.1);
             backdrop-filter: blur(12px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             font-size: 13px;
         }
         
         th {
-            background: #f75002;
-            color: #fff;
+            background: #e6d9fa;
+            color: #1a1a1a;
             padding: 12px 8px;
             text-align: left;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-size: 11px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid rgba(236, 239, 241, 0.5);
         }
         
         td {
             padding: 10px 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(236, 239, 241, 0.3);
             transition: all 0.3s ease;
             vertical-align: top;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(252, 228, 236, 0.1);
             backdrop-filter: blur(8px);
+            color: #333;
         }
         
         tr:hover td {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(252, 228, 236, 0.3);
             backdrop-filter: blur(10px);
         }
         
         .status-pending { 
-            background: #ca8a04;
-            color: #fff;
+            background: #fff8e1;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -200,8 +207,8 @@
             backdrop-filter: blur(5px);
         }
         .status-in-progress { 
-            background: #00b7eb;
-            color: #fff;
+            background: #d4f4e2;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -209,8 +216,8 @@
             backdrop-filter: blur(5px);
         }
         .status-completed { 
-            background: #15803d;
-            color: #fff;
+            background: #e6f3e6;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -218,8 +225,8 @@
             backdrop-filter: blur(5px);
         }
         .status-paused { 
-            background: #f97316;
-            color: #fff;
+            background: #ffefe0;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -227,8 +234,8 @@
             backdrop-filter: blur(5px);
         }
         .status-canceled { 
-            background: #b91c1c;
-            color: #fff;
+            background: #ffebee;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -237,8 +244,8 @@
         }
         
         .priority-high { 
-            background: #b91c1c;
-            color: #fff;
+            background: #ffebee;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -246,8 +253,8 @@
             backdrop-filter: blur(5px);
         }
         .priority-medium { 
-            background: #00b7eb;
-            color: #fff;
+            background: #d4f4e2;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -255,8 +262,8 @@
             backdrop-filter: blur(5px);
         }
         .priority-low { 
-            background: #f97316;
-            color: #fff;
+            background: #ffefe0;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -267,17 +274,17 @@
         .progress-bar {
             width: 100%;
             height: 18px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(252, 228, 236, 0.1);
             border-radius: 10px;
             overflow: hidden;
             position: relative;
             min-width: 80px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(236, 239, 241, 0.5);
         }
         
         .progress-fill {
             height: 100%;
-            background: #00b7eb;
+            background: #d4f4e2;
             transition: width 0.3s ease;
             border-radius: 10px;
         }
@@ -289,8 +296,8 @@
             transform: translate(-50%, -50%);
             font-size: 10px;
             font-weight: bold;
-            color: #fff;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            color: #333;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         .stats {
@@ -303,31 +310,32 @@
         .stat-card {
             flex: 1;
             min-width: 150px;
-            background: #f75002;
+            background: #e6d9fa;
             backdrop-filter: blur(10px);
             padding: 20px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(236, 239, 241, 0.5);
             transition: all 0.3s ease;
         }
         
         .stat-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-            background: #00b7eb;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            background: #d4f4e2;
+            color: #1a1a1a;
         }
         
         .stat-number {
             font-size: 2em;
             font-weight: bold;
-            color: #fff;
+            color: #1a1a1a;
             margin-bottom: 5px;
         }
         
         .stat-label {
-            color: rgba(255, 255, 255, 0.9);
+            color: #1a1a1a;
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -341,20 +349,21 @@
             font-weight: 500;
             margin-right: 5px;
             backdrop-filter: blur(5px);
-            color: #fff;
         }
         
         .tag-khoeplus {
-            background: #f75002;
+            background: #e6d9fa;
+            color: #1a1a1a;
         }
         
         .tag-greennutri {
-            background: #00b7eb;
+            background: #d4f4e2;
+            color: #333;
         }
         
         .overdue {
-            background: #b91c1c;
-            color: #fff;
+            background: #ffebee;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -363,8 +372,8 @@
         }
         
         .due-soon {
-            background: #ca8a04;
-            color: #fff;
+            background: #fff8e1;
+            color: #333;
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -378,9 +387,9 @@
         
         .reminder-section h3 {
             font-size: 1.2em;
-            color: #fff;
+            color: #333;
             margin-bottom: 15px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         @media (max-width: 768px) {
@@ -832,7 +841,7 @@
                             <td>${suggestions}</td>
                         `;
                         
-                        // Updated logic for "Công Việc Hôm Nay"
+                        // Logic for "Công Việc Hôm Nay"
                         if (status !== 'Completed' && startDate <= today && today <= endDate) {
                             todayTableBody.appendChild(rowElement.cloneNode(true));
                         } else if (status !== 'Completed' && endDate <= threeDaysFromNow) {
