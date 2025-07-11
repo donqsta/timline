@@ -783,7 +783,7 @@
                         const priority = priorityMap[task.priority] || 'Low';
                         const status = statusMap[task.status] || 'Pending';
                         const duration = calculateDuration(task.start_date, task.end_date);
-                        const suggestions = generate suggestions(task);
+                        const suggestions = generateSuggestions(task);
                         const startDate = new Date(task.start_date);
                         const endDate = new Date(task.end_date);
                         
