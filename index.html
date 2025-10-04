@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://apis.google.com https://www.gstatic.com https://accounts.google.com 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://sheets.googleapis.com https://accounts.google.com;">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://apis.google.com https://www.gstatic.com 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://sheets.googleapis.com;">
     <title>Timeline Dự Án Khoeplus.today & Green Nutri</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js"></script>
     <style>
         body {
@@ -109,16 +108,6 @@
             box-shadow: 0 8px 20px rgba(255, 235, 238, 0.4);
         }
         
-        .btn-auth {
-            background: #f48fb1;
-        }
-        
-        .btn-auth:hover {
-            background: #f8bbd0;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(248, 187, 208, 0.4);
-            color: #1a1a1a;
-        }
         
         .tabs {
             display: flex;
@@ -441,7 +430,6 @@
         </div>
         
         <div class="controls">
-            <button class="btn btn-auth" onclick="signInWithGoogle()">🔑 Đăng nhập với Google</button>
             <button class="btn btn-success" onclick="exportToExcel()">📊 Xuất Excel</button>
             <button class="btn btn-primary" onclick="filterByWebsite('all')">🌐 Tất Cả</button>
             <button class="btn btn-primary" onclick="filterByWebsite('khoeplus')">🏥 Khoeplus</button>
@@ -621,10 +609,7 @@
         const API_KEY = 'AIzaSyBSj848YvHiov4U4KWcOFitXsidQsZNc2c';
         const SPREADSHEET_ID = '1WgSYdTnQmdP1Pd6A56MdyeR5SeEmDgQkB4K-V4c8ucI';
         const RANGE = 'Tasks!A2:K';
-        const SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
         const TODAY = '2025-07-11'; // Hard-coded for 11/07/2025
-
-        let accessToken = localStorage.getItem('google_access_token');
 
         // Initialize Google API client
         function initClient() {
@@ -633,43 +618,19 @@
                     apiKey: API_KEY,
                     discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
                 }).then(() => {
-                    if (accessToken) {
-                        gapi.client.setToken({ access_token: accessToken });
-                        fetchData('website');
-                        // Start polling for real-time updates
-                        setInterval(() => {
-                            const activeTab = document.querySelector('.tab.active').getAttribute('onclick').match(/'([^']+)'/)[1];
-                            fetchData(activeTab);
-                        }, 30000); // Refresh every 30 seconds
-                    } else {
-                        alert('Vui lòng nhấn "Đăng nhập với Google" để cấp quyền truy cập.');
-                    }
+                    fetchData('website');
+                    // Start polling for real-time updates
+                    setInterval(() => {
+                        const activeTab = document.querySelector('.tab.active').getAttribute('onclick').match(/'([^']+)'/)[1];
+                        fetchData(activeTab);
+                    }, 30000); // Refresh every 30 seconds
                 }, (error) => {
                     console.error('Error initializing Google API client:', error);
-                    alert('Lỗi khởi tạo Google API. Vui lòng kiểm tra Client ID, API Key, hoặc Authorized JavaScript Origins.');
+                    alert('Lỗi khởi tạo Google API. Vui lòng kiểm tra API Key.');
                 });
             });
         }
 
-        // Sign in with Google
-        function signInWithGoogle() {
-            const client = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPE,
-                callback: (response) => {
-                    if (response.error) {
-                        console.error('Error during sign-in:', response);
-                        alert('Lỗi xác thực Google: ' + response.error);
-                        return;
-                    }
-                    accessToken = response.access_token;
-                    localStorage.setItem('google_access_token', accessToken);
-                    gapi.client.setToken({ access_token: accessToken });
-                    fetchData('website');
-                }
-            });
-            client.requestAccessToken();
-        }
 
         // Function to calculate duration in days
         function calculateDuration(startDate, endDate) {
@@ -714,11 +675,7 @@
             document.getElementById(tabName).style.display = 'block';
             
             filterByWebsite('all');
-            if (accessToken) {
-                fetchData(tabName);
-            } else {
-                alert('Vui lòng đăng nhập với Google để tải dữ liệu.');
-            }
+            fetchData(tabName);
         }
 
         // Function to filter tasks by website
@@ -943,23 +900,13 @@
                 document.getElementById('inProgressTasks').textContent = inProgressTasks;
                 document.getElementById('pendingTasks').textContent = pendingTasks;
             } catch (error) {
-                if (error.status === 401 || error.status === 403) {
-                    alert('Token hết hạn. Vui lòng đăng nhập lại.');
-                    localStorage.removeItem('google_access_token');
-                    accessToken = null;
-                } else {
-                    console.error('Error fetching data from Google Sheets:', error);
-                    alert('Lỗi tải dữ liệu từ Google Sheets. Vui lòng kiểm tra Spreadsheet ID hoặc quyền truy cập.');
-                }
+                console.error('Error fetching data from Google Sheets:', error);
+                alert('Lỗi tải dữ liệu từ Google Sheets. Vui lòng kiểm tra Spreadsheet ID hoặc quyền truy cập. Đảm bảo Google Sheet được chia sẻ công khai.');
             }
         }
 
         // Function to export table to Excel
         async function exportToExcel() {
-            if (!accessToken) {
-                alert('Vui lòng đăng nhập với Google trước khi xuất Excel.');
-                return;
-            }
             try {
                 const activeTab = document.querySelector('.tab.active').getAttribute('onclick').match(/'([^']+)'/)[1];
                 const response = await gapi.client.sheets.spreadsheets.values.get({
@@ -1039,14 +986,8 @@
                 link.click();
                 URL.revokeObjectURL(url);
             } catch (error) {
-                if (error.status === 401 || error.status === 403) {
-                    alert('Token hết hạn. Vui lòng đăng nhập lại.');
-                    localStorage.removeItem('google_access_token');
-                    accessToken = null;
-                } else {
-                    console.error('Error exporting to Excel:', error);
-                    alert('Lỗi xuất file CSV. Vui lòng kiểm tra kết nối Google Sheets.');
-                }
+                console.error('Error exporting to Excel:', error);
+                alert('Lỗi xuất file CSV. Vui lòng kiểm tra kết nối Google Sheets.');
             }
         }
 
